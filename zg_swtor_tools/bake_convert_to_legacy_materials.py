@@ -71,7 +71,7 @@ class ZGSWTOR_OT_convert_to_legacy_materials(bpy.types.Operator):
 
         # Append the Legacy materials from the auxiliary .blend file inside the Addon 
         
-        legacy_materials_blend_filepath = os.path.join(ADDON_ROOT, "rsrc", "Legacy SWTOR Shaders and Materials.blend")
+        legacy_materials_blend_filepath = os.path.join(ADDON_ROOT, "resources", "Legacy SWTOR Shaders and Materials.blend")
 
         if Path(legacy_materials_blend_filepath).exists() == False:
             self.report({"WARNING"}, "Unable to find the custom SWTOR shaders .blend file inside this Addon's directory.")

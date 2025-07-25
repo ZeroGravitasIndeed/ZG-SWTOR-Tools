@@ -2,16 +2,19 @@
 # PEP-8 what's that. Read my Indent Rollercoaster Model manifest!
 # So, without further ado…
 
-from ast import Pass
 import bpy
 import pathlib
 import xml.etree.ElementTree as ET
 import addon_utils
 
+from .utils.swtor_materials_utils import *
+
 from .utils.addon_checks import requirements_checks
 
 checks = requirements_checks()
 blender_version = checks["blender_version"]
+
+
 
 if blender_version <= 3.6:
     from .shd_additional_swtor_shaders_blen36 import create_AnimatedUV_material, create_EmissiveOnly_material
@@ -85,6 +88,108 @@ discardable = [
 collider_objects = []
 
 
+def process_mats_with_templates(self,
+                                mats_list = [],
+                                obj = None,
+                                already_processed_mats = [],
+                                swtor_resources_folderpath = None,
+                                swtor_template_filepath = None):
+    """
+    Processes a Blender material named after a SWTOR .mat file using pre-appended
+    SWTOR template materials. The pre-appending is done outside this function.
+
+    Args:
+        mats_list (list, optional): _description_. Defaults to [].
+        obj (_type_, optional): _description_. Defaults to None.
+        already_processed_mats (list, optional): _description_. Defaults to [].
+        swtor_resources_folderpath (_type_, optional): _description_. Defaults to None.
+        swtor_template_filepath (_type_, optional): _description_. Defaults to None.
+    """    
+    
+    if not mats_list:
+        return
+
+    addon_prefs = bpy.context.preferences.addons["zg_swtor_tools"].preferences    
+
+    swtor_shaders_path = swtor_resources_folderpath / "art/shaders/materials"
+    
+    is_collider = False  # Reset is_collider flag before testing
+
+
+    for mat in mats_list:
+        
+        print("          Material:", mat.name)
+        
+        if not mat.use_nodes:
+            print("          THIS MATERIAL DOESN'T USE NODES")
+            continue
+
+        
+        
+        # Is it a SWTOR material already?
+        mat_nodes = mat.node_tree.nodes
+        has_tor_nodes = any("TOR-" in node.name for node in mat_nodes)
+
+        
+        # Collision Object check at the texturemap level
+        if mat.name == "util_collision_hidden":
+            is_collider = True
+
+        # If it is called from the 3D Viewer and:
+        if not mats_list == []:
+            
+            # It is not being used in any object.
+            if not mat.users:
+                continue
+            
+            # It is already processed.
+            if (mat in already_processed_mats):     
+                continue
+            
+            # If there is a SWTOR shader already and overwriting is off.
+            if has_tor_nodes and not self.use_overwrite_bool:
+                continue
+
+
+        # Get SWTOR .mat file and its .xml data
+        swtor_mat_filepath = swtor_shaders_path / (mat.name + ".mat")
+
+
+        # Convert .mat file data to a dict of keys:values of the kind {input names: their values}. 
+        mat_dict = swtor_mat_file_to_dict(swtor_mat_filepath)
+        
+
+        # Read SWTOR shader type in that dict to decide which template material to use
+        derived = mat_dict["Derived"]
+        print(derived)
+        swtor_template_material_name = f"TOR-{derived}"
+
+
+        # Overwrite target Blender material with SWTOR template material nodes and links
+        if swtor_template_material_name not in bpy.data.materials:
+            return
+        
+        replace_material_node_tree(target_mat=mat,
+                                   source_mat=bpy.data.materials[swtor_template_material_name])
+
+
+        # Get palette data and overwrite the relevant .mat file data in the dict with it.
+        # garmenthue1_dict = swtor_garmenthue_file_to_dict(garmenthue1_filepath, palette_number=1)
+        # mat_dict.update(garmenthue1_dict)
+
+        # garmenthue2_dict = swtor_garmenthue_file_to_dict(garmenthue2_filepath, palette_number=2)
+        # mat_dict.update(garmenthue2_dict)
+
+
+        # Copy to its nodes the values stored in the dict derived from the .mat file
+        apply_swtor_mat_dict_to_material(mat,
+                                         mat_dict,
+                                         swtor_resources_folderpath=swtor_resources_folderpath)
+
+
+        if mat not in already_processed_mats:
+            already_processed_mats.append(mat)
+
 
 def process_mats(self, mats_list = [], obj = None, already_processed_mats = [], swtor_resources_folderpath = None):
 
@@ -131,7 +236,7 @@ def process_mats(self, mats_list = [], obj = None, already_processed_mats = [], 
                 continue
             
             # If there is a SWTOR shader already and overwriting is off.
-            if swtor_node_in_mat and self.use_overwrite_bool == False:
+            if swtor_node_in_mat and not self.use_overwrite_bool:
                 continue
             
 
@@ -167,14 +272,14 @@ def process_mats(self, mats_list = [], obj = None, already_processed_mats = [], 
 
             
         # Check that the SWTOR shader type is one we cover    
-        if  not matxml_derived in (atroxa_shader_types + ["EmissiveOnly", "AnimatedUV"]):
+        if  matxml_derived not in (atroxa_shader_types + ["EmissiveOnly", "AnimatedUV"]):
             continue  # Entirely disregard material and go for the next one
 
         # Delete Principled Shader (and everything else) if needed
         if (
-            (self.use_overwrite_bool == True)
+            self.use_overwrite_bool
             or (matxml_derived in atroxa_shader_types and not swtor_node_in_mat)
-            or (matxml_derived in ["EmissiveOnly", "AnimatedUV"] and not "_d DiffuseMap" in mat_nodes)
+            or (matxml_derived in ["EmissiveOnly", "AnimatedUV"] and "_d DiffuseMap" not in mat_nodes)
             ):
             
             for node in mat_nodes:
@@ -233,76 +338,17 @@ def process_mats(self, mats_list = [], obj = None, already_processed_mats = [], 
             matxml_type = matxml_input.find("type").text
             matxml_value = matxml_input.find("value").text
 
-
-            # Parsing palette1 data
-            if matxml_semantic == "palette1":
-                vectval = str(matxml_value).split(',')
-                palette1_value = [
-                    float(vectval[0]),
-                    float(vectval[1]),
-                    float(vectval[2]),
-                    float(vectval[3]),
-                    ]
-
-            if matxml_semantic == "palette1Specular":
-                vectval = str(matxml_value).split(',')
-                palette1specular_value = [
-                    float(vectval[0]),
-                    float(vectval[1]),
-                    float(vectval[2]),
-                    1.0,
-                    ]
-
-            if matxml_semantic == "palette1MetallicSpecular":
-                vectval = str(matxml_value).split(',')
-                palette1metallicspecular_value = [
-                    float(vectval[0]),
-                    float(vectval[1]),
-                    float(vectval[2]),
-                    1.0,
-                    ]
-
-
-            # Parsing palette2 data
-            if matxml_semantic == "palette2":
-                vectval = str(matxml_value).split(',')
-                palette2_value = [
-                    float(vectval[0]),
-                    float(vectval[1]),
-                    float(vectval[2]),
-                    float(vectval[3]),
-                    ]
-
-            if matxml_semantic == "palette2Specular":
-                vectval = str(matxml_value).split(',')
-                palette2specular_value = [
-                    float(vectval[0]),
-                    float(vectval[1]),
-                    float(vectval[2]),
-                    1.0,
-                    ]
-
-            if matxml_semantic == "palette2MetallicSpecular":
-                vectval = str(matxml_value).split(',')
-                palette2metallicspecular_value = [
-                    float(vectval[0]),
-                    float(vectval[1]),
-                    float(vectval[2]),
-                    1.0,
-                    ]
-
-
             # Parsing Flushtone and FleshBrightness
-            if matxml_semantic == "FlushTone":
-                vectval = str(matxml_value).split(',')
-                flushtone_value = [
-                    float(vectval[0]),
-                    float(vectval[1]),
-                    float(vectval[2]),
-                    ]
+            # if matxml_semantic == "FlushTone":
+            #     vectval = str(matxml_value).split(',')
+            #     flushtone_value = [
+            #         float(vectval[0]),
+            #         float(vectval[1]),
+            #         float(vectval[2]),
+            #         ]
                 
-            if matxml_semantic == "FleshBrightness":
-                fleshbrightness = float(str(matxml_value))
+            # if matxml_semantic == "FleshBrightness":
+            #     fleshbrightness = float(str(matxml_value))
 
             
             # Parsing and loading texture maps
@@ -425,10 +471,10 @@ def process_mats(self, mats_list = [], obj = None, already_processed_mats = [], 
 
             # Set values
             if palette1:
-                swtor_nodegroup.palette1_hue = palette1[0]
+                swtor_nodegroup.palette1_hue        = palette1[0]
                 swtor_nodegroup.palette1_saturation = palette1[1]
                 swtor_nodegroup.palette1_brightness = palette1[2]
-                swtor_nodegroup.palette1_contrast = palette1[3]
+                swtor_nodegroup.palette1_contrast   = palette1[3]
 
             if palette1specular:
                 swtor_nodegroup.palette1_specular = palette1specular
@@ -438,10 +484,10 @@ def process_mats(self, mats_list = [], obj = None, already_processed_mats = [], 
 
 
             if palette2:
-                swtor_nodegroup.palette2_hue = palette2[0]
+                swtor_nodegroup.palette2_hue        = palette2[0]
                 swtor_nodegroup.palette2_saturation = palette2[1]
                 swtor_nodegroup.palette2_brightness = palette2[2]
-                swtor_nodegroup.palette2_contrast = palette2[3]
+                swtor_nodegroup.palette2_contrast   = palette2[3]
 
             if palette2specular:
                 swtor_nodegroup.palette2_specular = palette2specular
@@ -525,7 +571,7 @@ def process_mats(self, mats_list = [], obj = None, already_processed_mats = [], 
 
                 # AnimatedUV Nodegroup Settings
                 if "animTexTint" in matxml_semantic:
-                    if not "," in matxml_value:
+                    if "," not in matxml_value:
                         matxml_value = matxml_value + "," + matxml_value + "," + matxml_value
                     vect_val = matxml_value.split(',')
                     AnimatedUV_node.inputs[matxml_semantic].default_value[0] = float(vect_val[0])
@@ -589,7 +635,8 @@ def process_mats(self, mats_list = [], obj = None, already_processed_mats = [], 
             
             print()
                     
-                        
+        # Add processed material to list of already processed ones
+        # to avoid wasting effort processing them again and again
         if mat not in already_processed_mats:
             already_processed_mats.append(mat)
 
@@ -609,7 +656,7 @@ def link_objects_to_collection (objects, collection, move = False):
 
     for object in objects:
         # First, unlink from any collections it is in.
-        if object.users_collection and move == True:
+        if object.users_collection and move:
             for current_collections in object.users_collection:
                 current_collections.objects.unlink(object)
 
@@ -639,6 +686,22 @@ class ZGSWTOR_OT_process_named_mats(bpy.types.Operator):
 
     # Property for the UI buttons to call different actions.
     # See: https://b3d.interplanety.org/en/calling-functions-by-pressing-buttons-in-blender-custom-ui/
+    # region
+    
+    zg_nmp_use_material_templates: bpy.props.BoolProperty(
+        name="Use Optional Templates System",
+        description='Creates materials based on a template .blend file instead of programmatically',
+        default = False,
+        options={'HIDDEN'}
+        )
+    
+    zg_nmp_refresh_material_templates: bpy.props.BoolProperty(
+        name="Refresh Materials Templates",
+        description='Re-appends the templates every time this tool is used.\n(useful when testing iterative changes in the templates).\n\nTemplates will always be appended if the working project\nlacks them when using this tool',
+        default = False,
+        options={'HIDDEN'}
+        )
+    
     use_selection_only: bpy.props.BoolProperty(
         name="Selection-only",
         description='Applies the material processing to the current selection of objects only',
@@ -655,7 +718,7 @@ class ZGSWTOR_OT_process_named_mats(bpy.types.Operator):
     
     use_overwrite_bool: bpy.props.BoolProperty(
         name="Overwrite materials",
-        description="Reprocesses already processed materials. This allows for updating them if better versions\nof our SWTOR Materials are implemented in new Add-on releases.",
+        description="Reprocesses already processed materials. This allows for updating them if better versions\nof our SWTOR Materials are implemented in new Add-on releases",
         default = False,
         options={'HIDDEN'}
         )
@@ -672,15 +735,23 @@ class ZGSWTOR_OT_process_named_mats(bpy.types.Operator):
     # Register some custom properties in the Material class for helping
     # diagnose issues. These appear in Blender's Material Properties panel
     bpy.types.Material.swtor_derived = bpy.props.StringProperty()
+    
+    # endregion
 
 
     # ------------------------------------------------------------------
     def execute(self, context):
 
         bpy.context.window.cursor_set("WAIT")
+        
+        
+        addon_prefs = bpy.context.preferences.addons["zg_swtor_tools"].preferences
+
 
         # Get the extracted SWTOR assets' "resources" folder from the add-on's preferences. 
-        swtor_resources_folderpath = pathlib.Path( bpy.context.preferences.addons["zg_swtor_tools"].preferences.swtor_resources_folderpath )
+        swtor_resources_folderpath = pathlib.Path( addon_prefs.swtor_resources_folderpath )
+        
+        swtor_template_filepath = pathlib.Path( addon_prefs.selected_swtor_template_mats_filepath )
         swtor_shaders_path = swtor_resources_folderpath / "art/shaders/materials"
 
         # Check if the SWTOR shaders are available
@@ -690,7 +761,7 @@ class ZGSWTOR_OT_process_named_mats(bpy.types.Operator):
 
         # Test the existence of the shaders subfolder to validate the SWTOR "resources" folder
         # THIS SHOULDN'T BE NECCESARY WITH THE USE OF requirements_checks
-        if swtor_shaders_path.exists() == False:
+        if not swtor_shaders_path.exists():
             self.report({"WARNING"}, "Unable to find the SWTOR Materials subfolder. Please check this add-on's preferences: either the path to the extracted assets 'resources' folder is incorrect or the resources > art > shaders > materials subfolder is missing.")
             return {"CANCELLED"}
 
@@ -700,8 +771,10 @@ class ZGSWTOR_OT_process_named_mats(bpy.types.Operator):
         already_processed_mats = []
         collider_objects = []
 
+        self.zg_nmp_use_material_templates = bpy.context.scene.zg_nmp_use_material_templates
+        self.zg_nmp_refresh_material_templates = bpy.context.scene.zg_nmp_refresh_material_templates
 
-        # Use from Shader Editor
+        # Use from Shader Editor, acting on the material being edited
         if self.convert_this_material != "" and self.convert_this_material in bpy.data.materials:
             
             # Duplicate material to convert data to a new variable and
@@ -709,7 +782,7 @@ class ZGSWTOR_OT_process_named_mats(bpy.types.Operator):
             mats_list = [bpy.data.materials[self.convert_this_material]]
             self.convert_this_material = ""
             
-            # When in the Shadwr Editor we don't do collider collecting
+            # When in the Shader Editor we don't do collider collecting
             # and we always overwrite SWTOR materials.
             bpy.context.scene.use_collect_colliders_bool = False
             self.use_overwrite_bool = True
@@ -719,16 +792,44 @@ class ZGSWTOR_OT_process_named_mats(bpy.types.Operator):
             print("PROCESSING OF NAMED SWTOR MATERIALS")
             print()
 
-            process_mats(self, mats_list, None, already_processed_mats, swtor_resources_folderpath)
+            if self.zg_nmp_use_material_templates:
+                
+                if not all([template_mat in bpy.data.materials for template_mat in read_swtor_template_mats_names_in_file(swtor_template_filepath)]):
+                    we_are_appending = True
+                else:
+                    if self.zg_nmp_refresh_material_templates:
+                        we_are_appending = True
+                    else:
+                        we_are_appending = False
+                        
+                if we_are_appending:
+                    append_swtor_materials_from_template_blend_file(swtor_template_filepath)
+                
+                process_mats_with_templates(self,
+                                            mats_list,
+                                            None,  # signals that this originates from the Shader Editor
+                                            already_processed_mats,
+                                            swtor_resources_folderpath,
+                                            swtor_template_filepath)
+                if we_are_appending:
+                    purge_old_tor_node_groups()
+                
+            else:
+                
+                process_mats(self,
+                            mats_list,
+                            None,  # signals that this originates from the Shader Editor
+                            already_processed_mats,
+                            swtor_resources_folderpath)
 
 
-        # Use from 3D View
+        # Use from 3D View, acting on the materials in the selected object or in all objects
         else:
                         
             self.use_collect_colliders_bool = bpy.context.scene.use_collect_colliders_bool
             self.use_overwrite_bool = bpy.context.scene.use_overwrite_bool
             
-            if self.use_selection_only == True:
+            if self.use_selection_only:
                 selected_objects = bpy.context.selected_objects
             else:
                 selected_objects = bpy.data.objects
@@ -739,6 +840,11 @@ class ZGSWTOR_OT_process_named_mats(bpy.types.Operator):
             print()
             print("PROCESSING OF NAMED SWTOR MATERIALS")
             print()
+
+
+            if self.zg_nmp_use_material_templates:
+                # If using the new template system, append the template materials if needed
+                append_swtor_materials_from_template_blend_file(swtor_template_filepath)
 
 
             already_processed_mats = []
@@ -757,7 +863,18 @@ class ZGSWTOR_OT_process_named_mats(bpy.types.Operator):
 
                     if len(obj.data.materials) > 0:
                         mats_list = list(obj.data.materials)  # This is more direct than checking material_slots
-                        is_collider = process_mats(self, mats_list, obj, already_processed_mats, swtor_resources_folderpath)                        
+                        if self.zg_nmp_use_material_templates:
+                            is_collider = process_mats_with_templates(self,
+                                                                      mats_list,
+                                                                      obj,
+                                                                      already_processed_mats,
+                                                                      swtor_resources_folderpath,swtor_template_filepath)
+                        else:
+                            is_collider = process_mats(self,
+                                                       mats_list,
+                                                       obj,
+                                                       already_processed_mats,
+                                                       swtor_resources_folderpath)
                     else:
                         print("          OBJECT HAS NO MATERIALS")
                         
@@ -769,7 +886,7 @@ class ZGSWTOR_OT_process_named_mats(bpy.types.Operator):
 
             # Adding collider objects to a Collection
             if self.use_collect_colliders_bool and collider_objects:
-                if not "Collider Objects" in bpy.context.scene.collection.children:
+                if "Collider Objects" not in bpy.context.scene.collection.children:
                     colliders_collection = bpy.data.collections.new("Collider Objects")
                     bpy.context.scene.collection.children.link(colliders_collection)
                 else:
@@ -792,22 +909,36 @@ class ZGSWTOR_OT_process_named_mats(bpy.types.Operator):
 # Registrations
 
 def register():
+    
+    bpy.types.Scene.zg_nmp_use_material_templates = bpy.props.BoolProperty(
+        description='Creates materials based on a template .blend file instead of programmatically',
+        default = False,
+        )
+
+    bpy.types.Scene.zg_nmp_refresh_material_templates = bpy.props.BoolProperty(
+        name="Refresh Materials Templates",
+        description='Re-appends the templates every time this tool is used.\n(useful when testing iterative changes in the templates).\n\nTemplates will always be appended if the working project\nlacks them when using this tool',
+        default = False,
+        )
+
     bpy.types.Scene.use_selection_only = bpy.props.BoolProperty(
         description='Applies the material processing to the current selection of objects only',
-        default = False
+        default = False,
     )
     
     bpy.types.Scene.use_overwrite_bool = bpy.props.BoolProperty(
         description="Reprocesses already processed materials. This allows for updating them if better versions\nof our SWTOR Materials are implemented in new Add-on releases.",
-        default=False
+        default=False,
     )
     bpy.types.Scene.use_collect_colliders_bool = bpy.props.BoolProperty(
         description='Creates or uses a "Collider Objects" Collection and adds to it\nany object with an "util_collision_hidden" type of material\nto facilitate its management and / or deletion',
-        default=True
+        default=True,
     )
     bpy.utils.register_class(ZGSWTOR_OT_process_named_mats)
 
 def unregister():
+    del bpy.types.Scene.zg_nmp_use_material_templates
+    del bpy.types.Scene.zg_nmp_refresh_material_templates
     del bpy.types.Scene.use_selection_only
     del bpy.types.Scene.use_overwrite_bool
     del bpy.types.Scene.use_collect_colliders_bool

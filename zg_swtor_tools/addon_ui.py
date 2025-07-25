@@ -1,9 +1,11 @@
 import bpy
 import addon_utils
+import os
 
 from .utils.addon_checks import requirements_checks
 
 
+ADDON_NAME = __name__.rsplit(".")[0]
 ADDON_ROOT = __file__.rsplit(__name__.rsplit(".")[0])[0] + __name__.rsplit(".")[0]
 
 Y_SCALING_GRAL = 0.9
@@ -36,6 +38,13 @@ class ZGSWTOR_PT_status_3dview(bpy.types.Panel):
         tool_section_zgpref.scale_y = Y_SCALING_GRAL
         tool_section_zgpref.scale_y = Y_SCALING_GRAL
         tool_section_zgpref.operator("zgswtor.open_zg_addon_preferences", text="ZG SWTOR Tools Prefs")
+        
+        # Materials templates file selector
+        tool_section_zgpref = layout.column(align=False)
+
+        zg_swtor_tools_prefs = context.preferences.addons["zg_swtor_tools"].preferences
+        tool_section_zgpref.label(text="Selected SWTOR Materials File")
+        tool_section_zgpref.prop(zg_swtor_tools_prefs, "selected_swtor_template_mats_filename", text="")
 
         # ZG Status report
         tool_section_zgstatus = layout.column(align=True)
@@ -46,6 +55,10 @@ class ZGSWTOR_PT_status_3dview(bpy.types.Panel):
 
         tool_section_zgstatus.alert = not checks["resources"]
         tool_section_zgstatus.label(text="• 'resources' Folder: " + checks["resources_status"])
+
+
+        # tool_section_zgstatus.alert = not checks["template"]
+        # tool_section_zgstatus.label(text="• SWTOR Materials: " + checks["template_status"])
 
         tool_section_zgstatus.alert = not checks["custom_shaders"]
         tool_section_zgstatus.label(text="• Custom Shaders: " + checks["custom_shaders_status"])
@@ -405,8 +418,16 @@ class ZGSWTOR_PT_materials_tools(bpy.types.Panel):
         # process_named_materials UI
         # ------------------------
         tool_section = layout.box().column(align=True)
-        tool_section.enabled = checks["resources"] and checks["gr2"]
-        tool_section.alert = tool_section.enabled is False
+        
+        # Check that we aren't editing a template before activating using the templates system
+        addon_prefs = bpy.context.preferences.addons["zg_swtor_tools"].preferences    
+        working_blend_folderpath = os.path.dirname(bpy.data.filepath)
+        internal_templates_folderpath = os.path.join(ADDON_ROOT, "resources","default_materials_templates")
+        external_templates_folderpath = addon_prefs.external_swtor_template_mats_folderpath
+        we_are_editing_a_templates_file = working_blend_folderpath == internal_templates_folderpath or working_blend_folderpath == external_templates_folderpath
+
+        tool_section.enabled = checks["resources"] and checks["gr2"] and not we_are_editing_a_templates_file
+        tool_section.alert = not (checks["resources"] and checks["gr2"])
 
         tool_section.label(text="Process Named Materials In")
 
@@ -420,9 +441,18 @@ class ZGSWTOR_PT_materials_tools(bpy.types.Panel):
         process_mats_all = col_right.operator("zgswtor.process_named_mats", text="All")
         col_right.enabled = len(bpy.data.objects) != 0
         process_mats_all.use_selection_only = False
+            
+        templates_options = tool_section.column(align=True)
+        if we_are_editing_a_templates_file:
+            templates_options.label(text="Can't Apply to Templates File")
+        templates_options.prop(context.scene, "zg_nmp_use_material_templates", text="Use Templates System")
 
-        process_mats_sel = tool_section.prop(context.scene, "use_overwrite_bool", text="Overwrite Materials")
-        process_mats_all = tool_section.prop(context.scene, "use_collect_colliders_bool", text="Collect Collider Objects")
+        split_line = templates_options.split(factor=0.03)
+        split_line.label()
+        split_line.prop(context.scene, "zg_nmp_refresh_material_templates", text="Update Templates")
+
+        tool_section.prop(context.scene, "use_overwrite_bool", text="Overwrite Materials")
+        tool_section.prop(context.scene, "use_collect_colliders_bool", text="Collect Collider Objects")
 
 
 
@@ -959,6 +989,10 @@ class ZGSWTOR_PT_status_node_editor(bpy.types.Panel):
         tool_section_zgstatus = layout.column(align=True)
         tool_section_zgstatus.scale_y = Y_SCALING_INFO
 
+        zg_swtor_tools_prefs = context.preferences.addons["zg_swtor_tools"].preferences
+        tool_section_zgpref.label(text="Selected SWTOR Materials File")
+        tool_section_zgpref.prop(zg_swtor_tools_prefs, "selected_swtor_template_mats_filename", text="")
+
         tool_section_zgstatus.alert = not checks["gr2"]
         tool_section_zgstatus.label(text="• .gr2 Add-on: " + checks["gr2_status"])
 
@@ -1010,9 +1044,16 @@ class ZGSWTOR_PT_shader_tools(bpy.types.Panel):
         # process_named_materials UI
         # ------------------------
         tool_section = layout.box().column(align=True)
-        
-        tool_section.enabled = checks["resources"] and checks["gr2"] and bpy.context.material != None
-        tool_section.alert = not checks["resources"] and checks["gr2"]
+
+        # Check that we aren't editing a template before activating using the templates system
+        addon_prefs = bpy.context.preferences.addons["zg_swtor_tools"].preferences    
+        working_blend_folderpath = os.path.dirname(bpy.data.filepath)
+        internal_templates_folderpath = os.path.join(ADDON_ROOT, "resources","default_materials_templates")
+        external_templates_folderpath = addon_prefs.external_swtor_template_mats_folderpath
+        we_are_editing_a_templates_file = working_blend_folderpath == internal_templates_folderpath or working_blend_folderpath == external_templates_folderpath
+
+        tool_section.enabled = checks["resources"] and checks["gr2"] and bpy.context.material != None and not we_are_editing_a_templates_file
+        tool_section.alert = not (checks["resources"] and checks["gr2"])
 
         tool_section.label(text="Named Materials Processor")
             
@@ -1020,6 +1061,16 @@ class ZGSWTOR_PT_shader_tools(bpy.types.Panel):
         if bpy.context.material:
             process_mats_sel.convert_this_material = bpy.context.material.name
         process_mats_sel.use_overwrite_bool = True
+        
+        templates_options = tool_section.column(align=True)
+        if we_are_editing_a_templates_file:
+            templates_options.label(text="Can't Apply to Templates File")
+        templates_options.prop(context.scene, "zg_nmp_use_material_templates", text="Use Templates System")
+
+        split_line = templates_options.split(factor=0.03)
+        split_line.label()
+        split_line.prop(context.scene, "zg_nmp_refresh_material_templates", text="Update Templates")
+
 
 
         # skinsettings_ng_in_shader_editor UI

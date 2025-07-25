@@ -375,7 +375,7 @@ class ZGSWTOR_OT_area_assembler(Operator):
         
         # Open zipped dyn nodes folder
         try:
-            dyn_zip = ZipFile(str(Path(ADDON_ROOT) / "rsrc" / "dyn.zip"), "r")
+            dyn_zip = ZipFile(str(Path(ADDON_ROOT) / "resources" / "dyn.zip"), "r")
             dyn_nodes__available = True
         except FileNotFoundError:
             print(" -- No dyn.zip file found inside the addon. Some objects will be omitted")  # Console.
@@ -383,7 +383,7 @@ class ZGSWTOR_OT_area_assembler(Operator):
 
         # Open spn to pcl or dyn correspondence table
         try:
-            with open(str(Path(ADDON_ROOT) / "rsrc" / "spn_table.txt"), "r") as spn_to_gr2_or_dyn:
+            with open(str(Path(ADDON_ROOT) / "resources" / "spn_table.txt"), "r") as spn_to_gr2_or_dyn:
                 print()
                 print("BUILDING TABLE OF INDIRECT OBJECT REFERENCES:")
                 print("---------------------------------------------")
@@ -400,8 +400,8 @@ class ZGSWTOR_OT_area_assembler(Operator):
             print(" -- No spn_table file found inside the addon. Some objects will be omitted")  # Console.
 
         
-        plc_nodes_folder = str(Path(ADDON_ROOT) / Path("rsrc") / Path("plc.zip"))
-        dyn_nodes_folder = str(Path(ADDON_ROOT) / Path("rsrc") / Path("dyn.zip"))
+        plc_nodes_folder = str(Path(ADDON_ROOT) / Path("resources") / Path("plc.zip"))
+        dyn_nodes_folder = str(Path(ADDON_ROOT) / Path("resources") / Path("dyn.zip"))
 
 
 # endregion

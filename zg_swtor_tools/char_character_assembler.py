@@ -208,7 +208,7 @@ def get_wrinkles_and_directionmaps(mat_file_abs_path):
 
 def place_black_dds(swtor_resources_folderpath):
 
-    black_dds_origin = Path(ADDON_ROOT) / "rsrc" / "black.dds"
+    black_dds_origin = Path(ADDON_ROOT) / "resources" / "black.dds"
     black_dds_destination = Path(swtor_resources_folderpath) / "art/defaultassets/black.dds"
     
     if black_dds_destination.exists() == False:

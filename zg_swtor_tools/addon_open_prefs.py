@@ -48,7 +48,7 @@ class ZGSWTOR_OT_open_zg_preferences(Operator):
     def execute(self, context):
         # bpy.ops.screen.userpref_show(section="ADDONS")
         
-        blender_prefs_with_custom_size(640, 512)
+        blender_prefs_with_custom_size(800, 900)
         bpy.ops.preferences.addon_show(module="zg_swtor_tools")
         return {'FINISHED'}
 
@@ -62,7 +62,7 @@ class ZGSWTOR_OT_open_gr2_preferences(Operator):
     def execute(self, context):
         # bpy.ops.screen.userpref_show(section="ADDONS")
         
-        blender_prefs_with_custom_size(640, 512)
+        blender_prefs_with_custom_size(640, 640)
         bpy.ops.preferences.addon_show(module="io_scene_gr2")
         return {'FINISHED'}
 
