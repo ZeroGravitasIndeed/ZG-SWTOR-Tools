@@ -9,7 +9,6 @@ import re
 import zlib
 
 
-
 ADDON_NAME = __name__.rsplit(".")[0]
 ADDON_ROOT = __file__.rsplit(__name__.rsplit(".")[0])[0] + ADDON_NAME
 
