@@ -180,7 +180,31 @@ def copy_material_non_rna_properties(target_mat, source_mat):
                     target_mat["_RNA_UI"][key] = value.copy()
                 except Exception as e:
                     print(f"Warning: Couldn't copy _RNA_UI layout for '{key}': {e}")
-                    
+
+def get_copyable_material_attributes(material):
+    """
+    Returns a list of material attributes that can be safely copied.
+    """
+    copyable_attrs = []
+    for attr in dir(material):
+        if attr in {"name", "_RNA_UI"}:
+            continue  # don't copy material name or internal data
+        if attr.startswith("_"):
+            continue
+        try:
+            value = getattr(material, attr)
+            if callable(value):
+                continue
+            if isinstance(value, (int, float, str, bool, tuple, list)):
+                copyable_attrs.append(attr)
+            elif attr == "node_tree":
+                copyable_attrs.append(attr)
+        except Exception:
+            continue
+    return copyable_attrs
+
+
+
 def replace_material_node_tree_OLD(target_mat, source_mat):
     """
    (Blender-generic)
@@ -195,7 +219,6 @@ def replace_material_node_tree_OLD(target_mat, source_mat):
     if not target_mat or not source_mat:
         print("Missing Materials in arguments")
         return
-
 
     # If materials args are strings, convert to material data blocks
     if not isinstance(target_mat, bpy.types.Material):
@@ -253,7 +276,7 @@ def replace_material_node_tree_OLD(target_mat, source_mat):
 
         # Handle some specific node types
         if node.type == 'TEX_IMAGE' and node.image:
-            new_node.image = node.image
+            new_node.image = node.image  # TEST IF THIS IS REALLY NEEDED for copying mats with default tmaps
 
         if node.type == 'GROUP' and node.node_tree:
             new_node.node_tree = node.node_tree
@@ -287,29 +310,6 @@ def replace_material_node_tree_OLD(target_mat, source_mat):
 
 
     print(f"Material '{target_mat.name}' was successfully overwritten with data from '{source_mat.name}'.")
-
-
-def get_copyable_material_attributes(material):
-    """
-    Returns a list of material attributes that can be safely copied.
-    """
-    copyable_attrs = []
-    for attr in dir(material):
-        if attr in {"name", "_RNA_UI"}:
-            continue  # don't copy material name or internal data
-        if attr.startswith("_"):
-            continue
-        try:
-            value = getattr(material, attr)
-            if callable(value):
-                continue
-            if isinstance(value, (int, float, str, bool)):
-                copyable_attrs.append(attr)
-            elif attr == "node_tree":
-                copyable_attrs.append(attr)
-        except Exception:
-            continue
-    return copyable_attrs
 
 def replace_material_node_tree(target_mat, source_mat):
     """
