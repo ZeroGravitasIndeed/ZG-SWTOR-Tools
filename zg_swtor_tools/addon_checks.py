@@ -150,4 +150,4 @@ def zg_checks():
             zg_checks"custom_shaders_status_verbose"] = "NOT FOUND. No .blend file can't be found at the specified path."
 
 
-    return checks
+    return zg_checks
