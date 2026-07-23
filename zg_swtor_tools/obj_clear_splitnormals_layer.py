@@ -1,6 +1,6 @@
 import bpy
 import bmesh
-from .utils.addon_checks import requirements_checks
+from .addon_checks import zg_checks
 from pathlib import Path
 
 
@@ -69,7 +69,7 @@ class ZGSWTOR_OT_clear_splitnormals_layers(bpy.types.Operator):
         print("--------------------------")
         print()
 
-        checks = requirements_checks()
+        
         
         if self.use_selection_only == True:
             objs = [obj for obj in bpy.context.selected_objects if obj.type == "MESH"]
@@ -102,7 +102,7 @@ class ZGSWTOR_OT_clear_splitnormals_layers(bpy.types.Operator):
                 bm.to_mesh(mesh)
                 bm.free()                
                 # Set Auto Smooth
-                if checks["blender_version"] < 4.1:
+                if zg_checks"blender_version"] < 4.1:
                     # For Blender 4.0.x and lower.
                     
                     mesh.use_auto_smooth = True

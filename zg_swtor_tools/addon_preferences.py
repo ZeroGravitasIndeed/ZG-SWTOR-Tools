@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 
-from .utils.addon_checks import requirements_checks
+from .addon_checks import zg_checks
 
 
 ADDON_ROOT = __file__.rsplit(__name__.rsplit(".")[0])[0] + __name__.rsplit(".")[0]
@@ -51,7 +51,7 @@ class addonPreferences(bpy.types.AddonPreferences):
     
     def draw(self, context):
         
-        checks = requirements_checks()
+        
         
         
         layout = self.layout
@@ -68,8 +68,8 @@ class addonPreferences(bpy.types.AddonPreferences):
         col=pref_box.column()
         col.prop(self, 'swtor_resources_folderpath', expand=True, )
         
-        col.alert = not checks["resources"]
-        col.label(text="Status: " + checks["resources_status_verbose"])
+        col.alert = not zg_checks"resources"]
+        col.label(text="Status: " + zg_checks"resources_status_verbose"])
 
 
 
@@ -84,8 +84,8 @@ class addonPreferences(bpy.types.AddonPreferences):
         col=pref_box.column()
         col.prop(self, 'swtor_custom_shaders_blendfile_path', expand=True, )
         
-        col.alert = not checks["custom_shaders"]
-        col.label(text="Status: " + checks["custom_shaders_status_verbose"])
+        col.alert = not zg_checks"custom_shaders"]
+        col.label(text="Status: " + zg_checks"custom_shaders_status_verbose"])
 
         col.operator("zgswtor.reset_custom_shaders_prefs_to_internal", text="Reset to internal Custom Shaders file")
 
@@ -109,8 +109,8 @@ class ZGSWTOR_OT_reset_custom_shaders_prefs_to_internal(bpy.types.Operator):
 
     @classmethod
     def poll(cls,context):
-        checks = requirements_checks()
-        if not checks["custom_shaders"]:
+        
+        if not zg_checks"custom_shaders"]:
             return True
         else:
             return False

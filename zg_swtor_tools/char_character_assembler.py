@@ -22,7 +22,7 @@ import json
 import xml.etree.ElementTree as ET
 
 # This Add-on's own modules
-from .utils.addon_checks import requirements_checks
+from .addon_checks import zg_checks
 
 
 ADDON_ROOT = __file__.rsplit(__name__.rsplit(".")[0])[0] + __name__.rsplit(".")[0]

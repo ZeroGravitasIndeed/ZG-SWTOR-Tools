@@ -1,7 +1,7 @@
 import bpy
 import addon_utils
 
-from .utils.addon_checks import requirements_checks
+from .addon_checks import zg_checks
 
 
 ADDON_ROOT = __file__.rsplit(__name__.rsplit(".")[0])[0] + __name__.rsplit(".")[0]
@@ -26,10 +26,9 @@ class ZGSWTOR_PT_status_3dview(bpy.types.Panel):
 
     def draw(self, context):
         
-        checks = requirements_checks()
-
         layout = self.layout
         layout.scale_y = Y_SCALING_GRAL
+
 
         # ZG Prefs
         tool_section_zgpref = layout.column(align=False)
@@ -41,19 +40,19 @@ class ZGSWTOR_PT_status_3dview(bpy.types.Panel):
         tool_section_zgstatus = layout.column(align=True)
         tool_section_zgstatus.scale_y = Y_SCALING_INFO
 
-        tool_section_zgstatus.alert = not checks["gr2"]
-        tool_section_zgstatus.label(text="• .gr2 Add-on: " + checks["gr2_status"])
+        tool_section_zgstatus.alert = not zg_zg_checks"gr2"]
+        tool_section_zgstatus.label(text="• .gr2 Add-on: " + zg_zg_checks"gr2_status"])
 
-        tool_section_zgstatus.alert = not checks["resources"]
-        tool_section_zgstatus.label(text="• 'resources' Folder: " + checks["resources_status"])
+        tool_section_zgstatus.alert = not zg_zg_checks"resources"]
+        tool_section_zgstatus.label(text="• 'resources' Folder: " + zg_zg_checks"resources_status"])
 
-        tool_section_zgstatus.alert = not checks["custom_shaders"]
-        tool_section_zgstatus.label(text="• Custom Shaders: " + checks["custom_shaders_status"])
+        tool_section_zgstatus.alert = not zg_zg_checks"custom_shaders"]
+        tool_section_zgstatus.label(text="• Custom Shaders: " + zg_zg_checks"custom_shaders_status"])
         
         if (
-            not checks["resources"]
-            or not checks["custom_shaders"]
-            or not checks["gr2"]
+            not zg_zg_checks"resources"]
+            or not zg_zg_checks"custom_shaders"]
+            or not zg_zg_checks"gr2"]
             ):
                         
             tool_section_info = layout.column(align=True)
@@ -66,16 +65,16 @@ class ZGSWTOR_PT_status_3dview(bpy.types.Panel):
 
 
         # .gr2 Prefs
-        if checks["gr2_status"] == "DISABLED":
+        if zg_zg_checks"gr2_status"] == "DISABLED":
             
             tool_section_gr2pref = layout.column(align=False)
             tool_section_gr2pref.scale_y = Y_SCALING_GRAL
             tool_section_gr2pref.separator(factor=Y_SCALING_SPACER)
             tool_section_gr2pref.operator("zgswtor.open_gr2_addon_preferences", text=".gr2 Add-on's Prefs")
             
-        elif checks["gr2_status"] == "ENABLED":
+        elif zg_zg_checks"gr2_status"] == "ENABLED":
             
-            if checks['gr2HasParams']:
+            if zg_zg_checks'gr2HasParams']:
                 gr2_addon_prefs = bpy.context.preferences.addons["io_scene_gr2"].preferences
 
                 tool_section_gr2pref = layout.column(align=False)
@@ -92,7 +91,7 @@ class ZGSWTOR_PT_status_3dview(bpy.types.Panel):
 
                 tool_section_gr2pref.prop(gr2_addon_prefs,"gr2_apply_axis_conversion")
                 
-                tool_section_gr2pref.alert = not checks["gr2"]
+                tool_section_gr2pref.alert = not zg_zg_checks"gr2"]
                 tool_section_gr2pref.operator("zgswtor.open_gr2_addon_preferences", text=".gr2 Add-on's Full Prefs")
                 
 
@@ -118,25 +117,22 @@ class ZGSWTOR_PT_area_tools(bpy.types.Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-
-        checks = requirements_checks()
         
         layout = self.layout
         layout.scale_y = Y_SCALING_GRAL
-
 
 
         # area_assembler UI
         # ------------------------
         tool_section = layout.box().column(align=True)
         tool_section.scale_y = 1.0
-        tool_section.enabled = checks["resources"] and checks["gr2"]
+        tool_section.enabled = zg_checks"resources"] and zg_checks"gr2"]
         tool_section.alert = tool_section.enabled is False
         
         tool_section.label(text="SWTOR Area Assembler")
         tool_section.operator("zgswtor.area_assembler", text="Select Area's .json Files")
         
-        if checks['gr2HasParams']:
+        if zg_checks'gr2HasParams']:
             tool_section_props = tool_section.column(align=True)
             tool_section_props.scale_y = Y_SCALING_INFO
             tool_section_props.separator(factor=2.0)
@@ -147,7 +143,7 @@ class ZGSWTOR_PT_area_tools(bpy.types.Panel):
         tool_section_props = tool_section.column(align=True)
         tool_section_props.scale_y = Y_SCALING_GRAL
 
-        if not checks['gr2HasParams']:
+        if not zg_checks'gr2HasParams']:
             ApplySceneScale_text = "Apply Scene Scale"
         else:
             ApplySceneScale_text = "Change Scene Scale To:"
@@ -156,7 +152,7 @@ class ZGSWTOR_PT_area_tools(bpy.types.Panel):
         split_line.enabled = context.scene.ZGSAA_ApplySceneScale
         split_line.label()
         split_line.prop(context.scene, "ZGSAA_SceneScaleFactor",              text="Scale Factor")
-        if checks['gr2HasParams']:
+        if zg_checks'gr2HasParams']:
             tool_section_props.separator(factor=1)
 
         tool_section_props.prop(context.scene, "ZGSAA_ApplyFinalRotation",    text="Apply Final Rotation")
@@ -262,11 +258,8 @@ class ZGSWTOR_PT_character_tools(bpy.types.Panel):
 
     def draw(self, context):
 
-        checks = requirements_checks()        
-
         layout = self.layout
         layout.scale_y = Y_SCALING_GRAL
-
 
 
         # ------------------------
@@ -275,10 +268,10 @@ class ZGSWTOR_PT_character_tools(bpy.types.Panel):
         
         tool_section.label(text="Character Assembler")
 
-        tool_section.enabled = checks["gr2"]
-        tool_section.alert = not checks["gr2"]
+        tool_section.enabled = zg_checks"gr2"]
+        tool_section.alert = not zg_checks"gr2"]
 
-        if not checks["resources"]:
+        if not zg_checks"resources"]:
             tool_section_info = tool_section.column(align=True)
             tool_section_info.scale_y = Y_SCALING_INFO
             tool_section_info.alert = True
@@ -296,7 +289,7 @@ class ZGSWTOR_PT_character_tools(bpy.types.Panel):
         
         # Options whose availability depends on a 'resources' folder in Preferences
         tool_section_dimmables = tool_section.column(align=True)
-        tool_section_dimmables.enabled = checks["resources"] and checks["gr2"]
+        tool_section_dimmables.enabled = zg_checks"resources"] and zg_checks"gr2"]
         tool_section_dimmables.prop(context.scene, "zg_swca_gather_only_bool", text="Gather Assets only")
         tool_section_dimmables.prop(context.scene, "zg_swca_dont_overwrite_bool", text="Don't Overwrite Assets")
         
@@ -383,11 +376,8 @@ class ZGSWTOR_PT_materials_tools(bpy.types.Panel):
 
     def draw(self, context):
 
-        checks = requirements_checks()
-
         layout = self.layout
         layout.scale_y = Y_SCALING_GRAL
-
 
 
         # set_backface_culling UI
@@ -405,7 +395,7 @@ class ZGSWTOR_PT_materials_tools(bpy.types.Panel):
         # process_named_materials UI
         # ------------------------
         tool_section = layout.box().column(align=True)
-        tool_section.enabled = checks["resources"] and checks["gr2"]
+        tool_section.enabled = zg_checks"resources"] and zg_checks"gr2"]
         tool_section.alert = tool_section.enabled is False
 
         tool_section.label(text="Process Named Materials In")
@@ -437,7 +427,7 @@ class ZGSWTOR_PT_materials_tools(bpy.types.Panel):
         split = tool_section.split(factor= 0.7, align=True)
 
         col_left, col_right = split.column(align=True), split.column(align=True)
-        col_left.alert = col_right.alert = not checks["gr2"]
+        col_left.alert = col_right.alert = not zg_checks"gr2"]
 
         process_mats_sel = col_left.operator("zgswtor.customize_swtor_shaders", text="Selected Objects")
         col_left.enabled = len(bpy.context.selected_objects) != 0
@@ -456,7 +446,7 @@ class ZGSWTOR_PT_materials_tools(bpy.types.Panel):
         dimmable_row2.prop(context.scene, "use_linking_bool", text="Link instead of Append")
         
         dimmable_row3 = tool_section.row(align=True)
-        dimmable_row3.enabled = checks["gr2"]
+        dimmable_row3.enabled = zg_checks"gr2"]
         dimmable_row3.prop(context.scene, "preserve_atroxa_bool", text="Preserve Original Shaders")
         
 
@@ -506,12 +496,12 @@ class ZGSWTOR_PT_materials_tools(bpy.types.Panel):
         split.scale_y = 0.7
         
         col = split.column(align=True)
-        if checks["blender_version"] < 4.2:
+        if zg_checks"blender_version"] < 4.2:
             col.prop(context.scene, "scsv_blend_mode_checkbox", text="Alpha Mode")
         col.prop(context.scene, "scsv_show_backface_checkbox", text="Show Backface")
 
         col = split.column(align=True)
-        if checks["blender_version"] < 4.2:
+        if zg_checks"blender_version"] < 4.2:
             col.prop(context.scene, "scsv_blend_mode", text="")
         col.prop(context.scene, "scsv_show_backface", text="")
 
@@ -565,7 +555,6 @@ class ZGSWTOR_PT_objects_tools(bpy.types.Panel):
         
         layout = self.layout
         layout.scale_y = Y_SCALING_GRAL
-
 
 
         # quickscale UI
@@ -826,7 +815,6 @@ class ZGSWTOR_PT_pose_sculpt_tools(bpy.types.Panel):
         layout.scale_y = Y_SCALING_GRAL
 
 
-
         # Pose Position / Reset Position UI
         # ------------------------
         # (this one is fully defined here, without
@@ -878,7 +866,6 @@ class ZGSWTOR_PT_baking_tools(bpy.types.Panel):
 
         layout = self.layout
         layout.scale_y = Y_SCALING_GRAL
-
 
 
         # bake_convert_to_legacy_materials UI
@@ -946,8 +933,6 @@ class ZGSWTOR_PT_status_node_editor(bpy.types.Panel):
     bl_label = "ZG SWTOR Tools Status"
 
     def draw(self, context):
-        
-        checks = requirements_checks()
 
         layout = self.layout
         layout.scale_y = Y_SCALING_GRAL
@@ -962,19 +947,19 @@ class ZGSWTOR_PT_status_node_editor(bpy.types.Panel):
         tool_section_zgstatus = layout.column(align=True)
         tool_section_zgstatus.scale_y = Y_SCALING_INFO
 
-        tool_section_zgstatus.alert = not checks["gr2"]
-        tool_section_zgstatus.label(text="• .gr2 Add-on: " + checks["gr2_status"])
+        tool_section_zgstatus.alert = not zg_checks"gr2"]
+        tool_section_zgstatus.label(text="• .gr2 Add-on: " + zg_checks"gr2_status"])
 
-        tool_section_zgstatus.alert = not checks["resources"]
-        tool_section_zgstatus.label(text="• 'resources' Folder: " + checks["resources_status"])
+        tool_section_zgstatus.alert = not zg_checks"resources"]
+        tool_section_zgstatus.label(text="• 'resources' Folder: " + zg_checks"resources_status"])
 
-        tool_section_zgstatus.alert = not checks["custom_shaders"]
-        tool_section_zgstatus.label(text="• Custom Shaders: " + checks["custom_shaders_status"])
+        tool_section_zgstatus.alert = not zg_checks"custom_shaders"]
+        tool_section_zgstatus.label(text="• Custom Shaders: " + zg_checks"custom_shaders_status"])
         
         if (
-            not checks["resources"]
-            or not checks["custom_shaders"]
-            or not checks["gr2"]
+            not zg_checks"resources"]
+            or not zg_checks"custom_shaders"]
+            or not zg_checks"gr2"]
             ):
                         
             tool_section_info = layout.column(align=True)
@@ -987,7 +972,7 @@ class ZGSWTOR_PT_status_node_editor(bpy.types.Panel):
 
 
         # .gr2 Prefs
-        if checks["gr2_status"] == "DISABLED":
+        if zg_checks"gr2_status"] == "DISABLED":
             
             tool_section_gr2pref = layout.column(align=False)
             tool_section_gr2pref.scale_y = Y_SCALING_GRAL
@@ -1005,17 +990,16 @@ class ZGSWTOR_PT_shader_tools(bpy.types.Panel):
     bl_label = "SWTOR Tools"
 
     def draw(self, context):
-                
-        checks = requirements_checks()
 
         layout = self.layout
+
 
         # process_named_materials UI
         # ------------------------
         tool_section = layout.box().column(align=True)
         
-        tool_section.enabled = checks["resources"] and checks["gr2"] and bpy.context.material is not None
-        tool_section.alert = not checks["resources"] and checks["gr2"]
+        tool_section.enabled = zg_checks"resources"] and zg_checks"gr2"] and bpy.context.material is not None
+        tool_section.alert = not zg_checks"resources"] and zg_checks"gr2"]
 
         tool_section.label(text="Named Materials Processor")
             

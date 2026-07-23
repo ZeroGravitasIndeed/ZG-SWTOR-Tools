@@ -1,6 +1,6 @@
 import bpy
 
-from .utils.addon_checks import requirements_checks
+from .addon_checks import zg_checks
 
 
 
@@ -62,8 +62,8 @@ class ZGSWTOR_OT_skinsettings_ng_in_shader_editor(bpy.types.Operator):
         bpy.context.window.cursor_set("WAIT")
 
 
-        checks = requirements_checks()
-        blender_version = checks["blender_version"]
+        
+        blender_version = zg_checks"blender_version"]
 
 
         mat_node_tree = bpy.data.materials[context.material.name].node_tree

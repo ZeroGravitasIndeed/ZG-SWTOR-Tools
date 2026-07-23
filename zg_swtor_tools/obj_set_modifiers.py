@@ -1,6 +1,6 @@
 import bpy
 
-from .utils.addon_checks import requirements_checks
+from .addon_checks import zg_checks
 
 class ZGSWTOR_OT_set_modifiers(bpy.types.Operator):
     bl_idname = "zgswtor.set_modifiers"
@@ -288,8 +288,8 @@ class ZGSWTOR_OT_set_modifiers(bpy.types.Operator):
             use_gr2_scale_custom_prop = context.preferences.addons["zg_swtor_tools"].preferences.use_gr2_scale_custom_prop
 
             # Checking if we are dealing with a .gr2 Add-on with scaling parameters
-            checks = requirements_checks()
-            if checks["gr2HasParams"]:
+            
+            if zg_checks"gr2HasParams"]:
                 if context.preferences.addons["io_scene_gr2"].preferences.gr2_scale_object:
                     gr2_scale = context.preferences.addons["io_scene_gr2"].preferences.gr2_scale_factor
                 else:

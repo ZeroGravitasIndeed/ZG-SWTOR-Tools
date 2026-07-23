@@ -31,7 +31,7 @@ import io
 import sys
 
 
-from .utils.addon_checks import requirements_checks
+from .addon_checks import zg_checks
 
 
 ADDON_ROOT = __file__.rsplit(__name__.rsplit(".")[0])[0] + __name__.rsplit(".")[0]
@@ -240,13 +240,13 @@ class ZGSWTOR_OT_area_assembler(Operator):
         self.ApplyFinalRotation = context.scene.ZGSAA_ApplyFinalRotation
         self.ApplyMaterials = context.scene.ZGSAA_ApplyMaterials
         
-        checks = requirements_checks()
+        
         # Check if we are dealing with the latest version of the
         # .gr2 importer add-on and its scaling settings to use them
         # in ApplySceneScale.
         # Axis conversion isn't considered given how this tool works
         # (it's alwasys as if it was applied).
-        if checks['gr2HasParams'] and not context.scene.ZGSAA_ApplySceneScale:
+        if zg_checks'gr2HasParams'] and not context.scene.ZGSAA_ApplySceneScale:
             prefs = context.preferences.addons["io_scene_gr2"].preferences
             self.ApplySceneScale = getattr(prefs, 'gr2_scale_object')
             self.SceneScaleFactor = getattr(prefs, 'gr2_scale_factor')
@@ -307,9 +307,9 @@ class ZGSWTOR_OT_area_assembler(Operator):
 
         # Blender version check for 3.x/4.x API differences
         # (.obj import so far, which affects terrains import)
-        checks = requirements_checks()
         
-        blender_version = checks['blender_version']
+        
+        blender_version = zg_checks'blender_version']
         
         # Check if we are dealing with the latest version of the
         # .gr2 importer add-on and its scaling settings to use them
@@ -318,7 +318,7 @@ class ZGSWTOR_OT_area_assembler(Operator):
         # (it's alwasys as if it was applied).
         # This also affects how the add-on detects new imported objects.
         
-        if checks['gr2HasParams']:
+        if zg_checks'gr2HasParams']:
             gr2HasParams = True
         else:
             gr2HasParams = False

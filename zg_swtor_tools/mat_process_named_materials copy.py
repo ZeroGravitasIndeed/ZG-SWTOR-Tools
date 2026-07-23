@@ -7,10 +7,10 @@ import pathlib
 import xml.etree.ElementTree as ET
 import addon_utils
 
-from .utils.addon_checks import requirements_checks
+from .addon_checks import zg_checks
 
-checks = requirements_checks()
-blender_version = checks["blender_version"]
+
+blender_version = zg_checks"blender_version"]
 
 if blender_version < 4:
     from .shd_blen36_AnimatedUV import create_AnimatedUV_nodegroup

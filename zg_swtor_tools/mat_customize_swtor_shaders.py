@@ -1,9 +1,9 @@
 import bpy
 
-from .utils.addon_checks import requirements_checks
+from .addon_checks import zg_checks
 
-checks = requirements_checks()
-blender_version = checks["blender_version"]
+
+blender_version = zg_checks"blender_version"]
 
 
 def selected_outliner_items(context):
@@ -36,8 +36,8 @@ class ZGSWTOR_OT_customize_swtor_shaders(bpy.types.Operator):
 
     @classmethod
     def poll(cls,context):
-        checks = requirements_checks()
-        if bpy.data.materials and bpy.data.objects and checks['gr2']:
+        
+        if bpy.data.materials and bpy.data.objects and zg_checks'gr2']:
             return True
         return False
 
@@ -125,8 +125,8 @@ class ZGSWTOR_OT_customize_swtor_shaders(bpy.types.Operator):
         bpy.context.window.cursor_set("DEFAULT")
 
 
-        checks = requirements_checks()
-        blender_version = checks["blender_version"]
+        
+        blender_version = zg_checks"blender_version"]
 
 
         # I'm reading the selected objects here because for some reason
