@@ -9,7 +9,7 @@ ADDON_ROOT = __file__.rsplit(__name__.rsplit(".")[0])[0] + __name__.rsplit(".")[
 
 
 
-def zg_checks():
+def requirements_checks():
     '''
     Returns a dict with both boolean and string reports on the existence
     and validity of some resources necessary for certain tools to work
@@ -23,9 +23,9 @@ def zg_checks():
     # Blender version checks
 
     blender_version_major_number, blender_version_minor_number , _ = bpy.app.version
-    zg_checks"blender_version"] = float(str(blender_version_major_number) + "." + str(blender_version_minor_number))
-    zg_checks"blender_version_status"] = bpy.app.version
-    zg_checks"blender_version_status_verbose"] = bpy.app.version
+    checks["blender_version"] = float(str(blender_version_major_number) + "." + str(blender_version_minor_number))
+    checks["blender_version_status"] = bpy.app.version
+    checks["blender_version_status_verbose"] = bpy.app.version
 
 
 
@@ -34,38 +34,38 @@ def zg_checks():
     # .gr2 Add-on checks
     
     if "io_scene_gr2" not in [mod.__name__ for mod in addon_utils.modules()]:
-        zg_checks"gr2"] = False
-        zg_checks"gr2_status"] = "NOT INSTALLED"
-        zg_checks"gr2_status_verbose"] = "NOT INSTALLED. No .gr2 Importer Add-on is currently installed."
+        checks["gr2"] = False
+        checks["gr2_status"] = "NOT INSTALLED"
+        checks["gr2_status_verbose"] = "NOT INSTALLED. No .gr2 Importer Add-on is currently installed."
         
-        zg_checks"gr2HasParams"] = False
-        zg_checks"gr2HasParams_status"] = "NOT AVAILABLE"
-        zg_checks"gr2HasParams_status_verbose"] = "NOT AVAILABLE. No .gr2 Importer Add-on is currently installed."
+        checks["gr2HasParams"] = False
+        checks["gr2HasParams_status"] = "NOT AVAILABLE"
+        checks["gr2HasParams_status_verbose"] = "NOT AVAILABLE. No .gr2 Importer Add-on is currently installed."
         
     else:
         # if "io_scene_gr2" in bpy.context.preferences.addons:  # More robust?
         if addon_utils.check("io_scene_gr2")[1]:
-            zg_checks"gr2"] = True
-            zg_checks"gr2_status"] = "ENABLED"
-            zg_checks"gr2_status_verbose"] = "ENABLED. A .gr2 Importer Add-on is installed and enabled."
+            checks["gr2"] = True
+            checks["gr2_status"] = "ENABLED"
+            checks["gr2_status_verbose"] = "ENABLED. A .gr2 Importer Add-on is installed and enabled."
             
             if hasattr(bpy.context.preferences.addons["io_scene_gr2"].preferences, "gr2_scale_object"):
-                zg_checks"gr2HasParams"] = True
-                zg_checks"gr2HasParams_status"] = "AVAILABLE"
-                zg_checks"gr2HasParams_status_verbose"] = "AVAILABLE. This .gr2 Importer Add-on has Prefs settings."
+                checks["gr2HasParams"] = True
+                checks["gr2HasParams_status"] = "AVAILABLE"
+                checks["gr2HasParams_status_verbose"] = "AVAILABLE. This .gr2 Importer Add-on has Prefs settings."
             else:
-                zg_checks"gr2HasParams"] = False
-                zg_checks"gr2HasParams_status"] = "NOT AVAILABLE"
-                zg_checks"gr2HasParams_status_verbose"] = "NOT AVAILABLE. This .gr2 Importer Add-on has no Prefs settings, might be an old version."
+                checks["gr2HasParams"] = False
+                checks["gr2HasParams_status"] = "NOT AVAILABLE"
+                checks["gr2HasParams_status_verbose"] = "NOT AVAILABLE. This .gr2 Importer Add-on has no Prefs settings, might be an old version."
                 
         else:
-            zg_checks"gr2"] = False
-            zg_checks"gr2_status"] = "DISABLED"
-            zg_checks"gr2_status_verbose"] = "DISABLED. A .gr2 Importer Add-on is installed, but still needs to be enabled."
+            checks["gr2"] = False
+            checks["gr2_status"] = "DISABLED"
+            checks["gr2_status_verbose"] = "DISABLED. A .gr2 Importer Add-on is installed, but still needs to be enabled."
                     
-            zg_checks"gr2HasParams"] = False
-            zg_checks"gr2HasParams_status"] = "NOT AVAILABLE"
-            zg_checks"gr2HasParams_status_verbose"] = "NOT AVAILABLE. A .gr2 Importer Add-on is installed, but still needs to be enabled."
+            checks["gr2HasParams"] = False
+            checks["gr2HasParams_status"] = "NOT AVAILABLE"
+            checks["gr2HasParams_status_verbose"] = "NOT AVAILABLE. A .gr2 Importer Add-on is installed, but still needs to be enabled."
 
 
 
@@ -78,26 +78,26 @@ def zg_checks():
     is_a_folder = Path(swtor_resources_folderpath).exists()
     is_a_resources_folder = ( Path(swtor_resources_folderpath) / "art/shaders/materials").exists()
 
-    zg_checks"resources"] = is_a_resources_folder
+    checks["resources"] = is_a_resources_folder
     
     if is_unfilled:
-        zg_checks"resources_status"] = "NOT SET"
-        zg_checks"resources_status_verbose"] = "NOT SET."
+        checks["resources_status"] = "NOT SET"
+        checks["resources_status_verbose"] = "NOT SET."
     else:
         if is_badly_written:
-            zg_checks"resources_status"] = "NOT VALID"
-            zg_checks"resources_status_verbose"] = "NOT VALID. This is not a folder path."
+            checks["resources_status"] = "NOT VALID"
+            checks["resources_status_verbose"] = "NOT VALID. This is not a folder path."
         else:
             if is_a_resources_folder:
-                zg_checks"resources_status"] = "SET"
-                zg_checks"resources_status_verbose"] = "SET. This is a valid 'resources' folder."
+                checks["resources_status"] = "SET"
+                checks["resources_status_verbose"] = "SET. This is a valid 'resources' folder."
             else:
                 if is_a_folder:
-                    zg_checks"resources_status"] = "NOT VALID"
-                    zg_checks"resources_status_verbose"] = "NOT VALID. This folder isn't a valid 'resources' directory root."
+                    checks["resources_status"] = "NOT VALID"
+                    checks["resources_status_verbose"] = "NOT VALID. This folder isn't a valid 'resources' directory root."
                 else:
-                    zg_checks"resources_status"] = "NOT FOUND"
-                    zg_checks"resources_status_verbose"] = "NOT FOUND. No folder can't be found at the specified path."
+                    checks["resources_status"] = "NOT FOUND"
+                    checks["resources_status_verbose"] = "NOT FOUND. No folder can't be found at the specified path."
 
 
 
@@ -124,30 +124,30 @@ def zg_checks():
     else:
         blend_file_is_valid = False
 
-    zg_checks"custom_shaders"] = blend_file_exists
+    checks["custom_shaders"] = blend_file_exists
 
     if blend_file_exists:
         if blend_file_is_valid:
-            zg_checks"custom_shaders"] = True
+            checks["custom_shaders"] = True
             if blend_file_is_internal:
-                zg_checks"custom_shaders_status"] = "INTERNAL"
-                zg_checks"custom_shaders_status_verbose"] = "INTERNAL. Uses the Custom SWTOR Shaders .blend file inside the Add-on."
+                checks["custom_shaders_status"] = "INTERNAL"
+                checks["custom_shaders_status_verbose"] = "INTERNAL. Uses the Custom SWTOR Shaders .blend file inside the Add-on."
             else:
-                zg_checks"custom_shaders_status"] = "EXTERNAL"
-                zg_checks"custom_shaders_status_verbose"] = "EXTERNAL. Uses a Custom SWTOR Shaders .blend file outside the Add-on."
+                checks["custom_shaders_status"] = "EXTERNAL"
+                checks["custom_shaders_status_verbose"] = "EXTERNAL. Uses a Custom SWTOR Shaders .blend file outside the Add-on."
         else:
-            zg_checks"custom_shaders"] = False
-            zg_checks"custom_shaders_status"] = "NOT VALID"
-            zg_checks"custom_shaders_status_verbose"] = "NOT VALID. This .blend file doesn't contain valid Custom SWTOR Shaders."
+            checks["custom_shaders"] = False
+            checks["custom_shaders_status"] = "NOT VALID"
+            checks["custom_shaders_status_verbose"] = "NOT VALID. This .blend file doesn't contain valid Custom SWTOR Shaders."
     else:
         if blend_file_badly_written:
-            zg_checks"custom_shaders"] = False
-            zg_checks"custom_shaders_status"] = "NOT VALID"
-            zg_checks"custom_shaders_status_verbose"] = "NOT VALID. This is not a .blend file path."
+            checks["custom_shaders"] = False
+            checks["custom_shaders_status"] = "NOT VALID"
+            checks["custom_shaders_status_verbose"] = "NOT VALID. This is not a .blend file path."
         else:
-            zg_checks"custom_shaders"] = False
-            zg_checks"custom_shaders_status"] = "NOT FOUND"
-            zg_checks"custom_shaders_status_verbose"] = "NOT FOUND. No .blend file can't be found at the specified path."
+            checks["custom_shaders"] = False
+            checks["custom_shaders_status"] = "NOT FOUND"
+            checks["custom_shaders_status_verbose"] = "NOT FOUND. No .blend file can't be found at the specified path."
 
 
-    return zg_checks
+    return checks
